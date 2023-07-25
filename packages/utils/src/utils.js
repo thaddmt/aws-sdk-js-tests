@@ -2,10 +2,8 @@ import AWS from "aws-sdk";
 
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-provider-cognito-identity";
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity";
-import {
-  RekognitionStreamingClient,
-  StartFaceLivenessSessionCommand,
-} from "@aws-sdk/client-rekognitionstreaming";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts"; // ES Modules import
 
 import { REGION, IDENTITY_POOL_ID } from "./config.js";
 
@@ -14,23 +12,9 @@ export const getV2Response = async (clientParams) => {
 };
 
 export const getV3Response = async (clientParams) => {
-  const client = new RekognitionStreamingClient(clientParams);
-  const foobar = {
-    async *[Symbol.asyncIterator]() {
-      yield "hello";
-      yield "async";
-      yield "iteration!";
-    },
-  };
-  const response = await client.send(
-    new StartFaceLivenessSessionCommand({
-      ChallengeVersions: "FaceMovementAndLightChallenge_1.0.0",
-      SessionId: "foobar",
-      LivenessRequestStream: foobar,
-      VideoWidth: "100",
-      VideoHeight: "100",
-    })
-  );
+  const client = new STSClient(clientParams);
+  const command = new GetCallerIdentityCommand({});
+  const response = await client.send(command);
   return response;
 };
 
@@ -49,9 +33,9 @@ export const getV3BrowserResponse = async () =>
     region: REGION,
     credentials: fromCognitoIdentityPool({
       client: new CognitoIdentityClient({
-        region: "us-east-2",
+        region: REGION,
       }),
       identityPoolId: IDENTITY_POOL_ID,
+      systemClockOffset: -3600000,
     }),
-    systemClockOffset: -3600000,
   });
