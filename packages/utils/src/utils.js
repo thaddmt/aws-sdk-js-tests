@@ -7,6 +7,7 @@ import {
   StartFaceLivenessSessionCommand,
 } from "@aws-sdk/client-rekognitionstreaming";
 
+import { EventStreamPayloadHandler } from "./EventStreamPayloadHandler.js";
 import { REGION, IDENTITY_POOL_ID } from "./config.js";
 
 export const getV2Response = async (clientParams) => {
@@ -48,6 +49,8 @@ export const getV3BrowserResponse = async () =>
   getV3Response({
     region: REGION,
     systemClockOffset: -3600000,
+    eventStreamPayloadHandlerProvider: (options) =>
+      new EventStreamPayloadHandler(options),
     credentials: fromCognitoIdentityPool({
       client: new CognitoIdentityClient({
         region: "us-east-2",
